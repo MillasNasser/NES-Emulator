@@ -1,0 +1,6 @@
+#if !defined(_CPU_INSTRUCTION_TABLE_)
+#define _CPU_INSTRUCTION_TABLE_
+
+
+
+#endif // _CPU_INSTRUCTION_TABLE_
