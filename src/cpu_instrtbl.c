@@ -289,7 +289,3 @@ instruction_t cpu_instr_tbl[256] = {
     {"INC", INC, ABSX, 7},
     NO_INSTR,
 };
-
-void asd () {
-    sizeof(instruction_t);
-}
