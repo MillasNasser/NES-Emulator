@@ -27,15 +27,6 @@
         N_NEGATIVE    = (1 << 7),
     };
 
-    typedef struct {
-        const char name[8];
-        uint8_t (*op)();
-        uint8_t (*addr_mode)();
-        uint8_t cycles;
-    } instruction_t;
-
-
-
     typedef struct R6502{
         struct bus_t *bus;
         struct R6502 *self;
@@ -61,6 +52,7 @@
 
     void cpu_connect_bus(R6502 *cpu, Bus *bus);
 
+    uint8_t cpu_get_val(R6502 *cpu, uint16_t addr);
     uint8_t cpu_read(R6502 *cpu, uint16_t addr);
     void cpu_write(R6502 *cpu, uint16_t addr, uint8_t data);
 
@@ -77,23 +69,21 @@
     void RES(const signal_param_t *param);
 
     //? Addressing modes
-    typedef struct {
-        R6502 *cpu;
-    }addrmod_param_t;
+    #define addrmod_param R6502 *cpu
 
-    uint8_t Accum(const addrmod_param_t *param);
-    uint8_t IMM(const addrmod_param_t *param);
-    uint8_t Abs(const addrmod_param_t *param);
-    uint8_t ZP(const addrmod_param_t *param);
-    uint8_t ZPX(const addrmod_param_t *param);
-    uint8_t ZPY(const addrmod_param_t *param);
-    uint8_t ABSX(const addrmod_param_t *param);
-    uint8_t ABSY(const addrmod_param_t *param);
-    uint8_t Implied(const addrmod_param_t *param);
-    uint8_t Relative(const addrmod_param_t *param);
-    uint8_t INDX(const addrmod_param_t *param);
-    uint8_t INDY(const addrmod_param_t *param);
-    uint8_t IND(const addrmod_param_t *param);
+    uint8_t Accum( addrmod_param );
+    uint8_t IMM( addrmod_param );
+    uint8_t Abs( addrmod_param );
+    uint8_t ZP( addrmod_param );
+    uint8_t ZPX( addrmod_param );
+    uint8_t ZPY( addrmod_param );
+    uint8_t ABSX( addrmod_param );
+    uint8_t ABSY( addrmod_param );
+    uint8_t Implied( addrmod_param );
+    uint8_t Relative( addrmod_param );
+    uint8_t INDX( addrmod_param );
+    uint8_t INDY( addrmod_param );
+    uint8_t IND( addrmod_param );
 
     //? Intructions
     typedef struct {
