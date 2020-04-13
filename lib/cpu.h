@@ -27,6 +27,22 @@
         N_NEGATIVE    = (1 << 7),
     };
 
+    typedef union {
+        struct {
+            char C_CARRY:1;
+            char Z_ZERO:1;
+            char I_IRQ_DISABLE:1;
+            char D_DECIMAL:1;
+            char B_BRK:1;
+            char U_UNABLE:1;
+            char V_OVERFLOW:1;
+            char N_NEGATIVE:1;
+        };
+
+        uint8_t status;
+    } status_t;
+
+
     typedef struct R6502{
         struct bus_t *bus;
         struct R6502 *self;
@@ -45,7 +61,7 @@
         uint8_t X; // Index Register X
         uint8_t Y; // Index Register Y
         uint8_t STK; // Stack pointer
-        uint8_t STATUS; // Status Reg
+        status_t STATUS; // Status Reg
         uint16_t PC; // Program Counter
 
     } R6502;
@@ -86,78 +102,87 @@
     uint8_t IND( addrmod_param );
 
     //? Intructions
+    #define instr_params R6502 *cpu
+
+    uint8_t ADC(instr_params);
+    uint8_t AND(instr_params);
+    uint8_t ASL(instr_params);
+
+    uint8_t BCC(instr_params);
+    uint8_t BCS(instr_params);
+    uint8_t BEQ(instr_params);
+    uint8_t BIT(instr_params);
+    uint8_t BMI(instr_params);
+    uint8_t BNE(instr_params);
+    uint8_t BPL(instr_params);
+    uint8_t BRK(instr_params);
+    uint8_t BVC(instr_params);
+    uint8_t BVS(instr_params);
+
+    uint8_t CLC(instr_params);
+    uint8_t CLD(instr_params);
+    uint8_t CLI(instr_params);
+    uint8_t CLV(instr_params);
+    uint8_t CMP(instr_params);
+    uint8_t CPX(instr_params);
+    uint8_t CPY(instr_params);
+
+    uint8_t DEC(instr_params);
+    uint8_t DEX(instr_params);
+    uint8_t DEY(instr_params);
+
+    uint8_t EOR(instr_params);
+
+    uint8_t INC(instr_params);
+    uint8_t INX(instr_params);
+    uint8_t INY(instr_params);
+
+    uint8_t JMP(instr_params);
+    uint8_t JSR(instr_params);
+
+    uint8_t LDA(instr_params);
+    uint8_t LDX(instr_params);
+    uint8_t LDY(instr_params);
+    uint8_t LSR(instr_params);
+
+    uint8_t NOP(instr_params);
+
+    uint8_t ORA(instr_params);
+
+    uint8_t PHA(instr_params);
+    uint8_t PHP(instr_params);
+    uint8_t PLA(instr_params);
+    uint8_t PLP(instr_params);
+
+    uint8_t ROL(instr_params);
+    uint8_t ROR(instr_params);
+    uint8_t RTI(instr_params);
+    uint8_t RTS(instr_params);
+
+    uint8_t SBC(instr_params);
+    uint8_t SEC(instr_params);
+    uint8_t SED(instr_params);
+    uint8_t SEI(instr_params);
+    uint8_t STA(instr_params);
+    uint8_t STX(instr_params);
+    uint8_t STY(instr_params);
+
+    uint8_t TAX(instr_params);
+    uint8_t TAY(instr_params);
+    uint8_t TSX(instr_params);
+    uint8_t TXA(instr_params);
+    uint8_t TXS(instr_params);
+    uint8_t TYA(instr_params);
+
+    //? Instruction table
     typedef struct {
-        R6502 *cpu;
-    } instr_param_t;
+        const char name[8];
+        uint8_t (*op)();
+        uint8_t (*addr_mode)();
+        uint8_t cycles;
+    } instruction_t;
+    #define NO_INSTR ((instruction_t){"???", NULL, NULL, 0})
 
-    uint8_t ADC(const instr_param_t *param);
-    uint8_t AND(const instr_param_t *param);
-    uint8_t ASL(const instr_param_t *param);
-
-    uint8_t BCC(const instr_param_t *param);
-    uint8_t BCS(const instr_param_t *param);
-    uint8_t BEQ(const instr_param_t *param);
-    uint8_t BIT(const instr_param_t *param);
-    uint8_t BMI(const instr_param_t *param);
-    uint8_t BNE(const instr_param_t *param);
-    uint8_t BPL(const instr_param_t *param);
-    uint8_t BRK(const instr_param_t *param);
-    uint8_t BVC(const instr_param_t *param);
-    uint8_t BVS(const instr_param_t *param);
-
-    uint8_t CLC(const instr_param_t *param);
-    uint8_t CLD(const instr_param_t *param);
-    uint8_t CLI(const instr_param_t *param);
-    uint8_t CLV(const instr_param_t *param);
-    uint8_t CMP(const instr_param_t *param);
-    uint8_t CPX(const instr_param_t *param);
-    uint8_t CPY(const instr_param_t *param);
-
-    uint8_t DEC(const instr_param_t *param);
-    uint8_t DEX(const instr_param_t *param);
-    uint8_t DEY(const instr_param_t *param);
-
-    uint8_t EOR(const instr_param_t *param);
-
-    uint8_t INC(const instr_param_t *param);
-    uint8_t INX(const instr_param_t *param);
-    uint8_t INY(const instr_param_t *param);
-
-    uint8_t JMP(const instr_param_t *param);
-    uint8_t JSR(const instr_param_t *param);
-
-    uint8_t LDA(const instr_param_t *param);
-    uint8_t LDX(const instr_param_t *param);
-    uint8_t LDY(const instr_param_t *param);
-    uint8_t LSR(const instr_param_t *param);
-
-    uint8_t NOP(const instr_param_t *param);
-
-    uint8_t ORA(const instr_param_t *param);
-
-    uint8_t PHA(const instr_param_t *param);
-    uint8_t PHP(const instr_param_t *param);
-    uint8_t PLA(const instr_param_t *param);
-    uint8_t PLP(const instr_param_t *param);
-
-    uint8_t ROL(const instr_param_t *param);
-    uint8_t ROR(const instr_param_t *param);
-    uint8_t RTI(const instr_param_t *param);
-    uint8_t RTS(const instr_param_t *param);
-
-    uint8_t SBC(const instr_param_t *param);
-    uint8_t SEC(const instr_param_t *param);
-    uint8_t SED(const instr_param_t *param);
-    uint8_t SEI(const instr_param_t *param);
-    uint8_t STA(const instr_param_t *param);
-    uint8_t STX(const instr_param_t *param);
-    uint8_t STY(const instr_param_t *param);
-
-    uint8_t TAX(const instr_param_t *param);
-    uint8_t TAY(const instr_param_t *param);
-    uint8_t TSX(const instr_param_t *param);
-    uint8_t TXA(const instr_param_t *param);
-    uint8_t TXS(const instr_param_t *param);
-    uint8_t TYA(const instr_param_t *param);
+    instruction_t cpu_instr_tbl[256];
 
 #endif // _NES_CPU_

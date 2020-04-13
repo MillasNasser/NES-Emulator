@@ -1,4 +1,4 @@
-#include "cpu_instrtbl.h"
+#include "cpu.h"
 
 instruction_t cpu_instr_tbl[256] = {
     //? linha 0
