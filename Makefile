@@ -17,6 +17,8 @@ LIBRARIES = -lpthread
 #Compilation line
 COMPILE = $(CC) $(CFLAGS) $(INCLUDE_PATHS)
 
+OUTPUT = main.out
+
 #FILEs
 #---------------Source----------------#
 SRCS = $(wildcard $(SDIR)/*.c)
@@ -27,7 +29,7 @@ DEPS = $(SRCS:$(SDIR)/%.c=$(ODIR)/%.d)
 
 
 all: md-obj $(OBJS)
-	$(COMPILE) $(OBJS) main.c -o main.out $(LIBRARIES)
+	$(COMPILE) $(OBJS) main.c -o $(OUTPUT) $(LIBRARIES)
 
 
 # Include all .d files
@@ -35,6 +37,9 @@ all: md-obj $(OBJS)
 
 $(ODIR)/%.o: $(SDIR)/%.c
 	$(COMPILE) -c $< -o $@ $(LIBRARIES)
+
+run:
+	./$(OUTPUT)
 
 .PHONY : clean
 md-obj:

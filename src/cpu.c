@@ -221,9 +221,7 @@ uint8_t ADC(R6502 *cpu){
     uint8_t carry = cpu->STATUS.C_CARRY;
 
     acc = acc + data + carry;
-
-
-
+    
     return 0;
 }
 

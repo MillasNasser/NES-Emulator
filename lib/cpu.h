@@ -13,7 +13,6 @@
 
     //? Includes
     #include "hdefault.h"
-    #include "cpu_instrtbl.h"
     #include "bus.h"
 
     enum STATUS_REG{
