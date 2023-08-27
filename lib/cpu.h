@@ -182,6 +182,6 @@
     } instruction_t;
     #define NO_INSTR ((instruction_t){"???", NULL, NULL, 0})
 
-    instruction_t cpu_instr_tbl[256];
+    extern instruction_t cpu_instr_tbl[256];
 
 #endif // _NES_CPU_

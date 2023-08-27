@@ -1,48 +1,31 @@
-#Main Makefile
-CC := gcc
-CFLAGS := -Wall
+# Folders
+SRC_FOLDER = src/
+OBJ_FOLDER = obj/
+LIB_FOLDER = lib/
 
-#Directories
-IDIR := ./lib
-SDIR := ./src
+# Variaveis do projeto
+CC = gcc
+FLAGS = -pedantic-errors -w -Wextra -Wall
+SRC = $(wildcard ./**/*.c)
+OBJ = $(SRC:.c=.o)
+OBJ_PATH = ${subst $(SRC_FOLDER),$(OBJ_FOLDER),$(OBJ)}
+EXEC=main
 
-ODIR := ./obj
+all: main
 
-#Paths
-INCLUDE_PATHS = $(IDIR:%=-I%)
+main: $(OBJ)
+	@$(CC) -I$(LIB_FOLDER) -o $(EXEC) main.c $(OBJ_PATH)
 
-#Libraries
-LIBRARIES = -lpthread
+%.o: %.c
+	@$(CC) -I$(LIB_FOLDER) -o $(OBJ_FOLDER)$(@F) -c $<
 
-#Compilation line
-COMPILE = $(CC) $(CFLAGS) $(INCLUDE_PATHS)
-
-OUTPUT = main.out
-
-#FILEs
-#---------------Source----------------#
-SRCS = $(wildcard $(SDIR)/*.c)
-#---------------Object----------------#
-OBJS = $(SRCS:$(SDIR)/%.c=$(ODIR)/%.o)
-#-------------Dependency--------------#
-DEPS = $(SRCS:$(SDIR)/%.c=$(ODIR)/%.d)
-
-
-all: md-obj $(OBJS)
-	$(COMPILE) $(OBJS) main.c -o $(OUTPUT) $(LIBRARIES)
-
-
-# Include all .d files
--include $(DEPS)
-
-$(ODIR)/%.o: $(SDIR)/%.c
-	$(COMPILE) -c $< -o $@ $(LIBRARIES)
-
-run:
-	./$(OUTPUT)
-
-.PHONY : clean
-md-obj:
-	mkdir -p obj
 clean:
-	rm -rf *.d obj/* *.txt
+	@rm -f ./obj/*
+
+clear: clean
+	@rm -f main
+
+build: main clean
+
+run: build
+	@./$(EXEC)

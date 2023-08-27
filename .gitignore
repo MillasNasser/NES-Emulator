@@ -1,3 +1,7 @@
+# Build json
+compile_commands.json
+.cache/
+
 # Prerequisites
 *.d
 
@@ -57,12 +61,7 @@ roms/Balloon Fight.nes
 roms/Battle City.nes
 
 ### VisualStudioCode ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
+.vscode/
 
 # Local History for Visual Studio Code
 .history/
