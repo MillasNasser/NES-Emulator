@@ -1,30 +1,48 @@
+#include <stddef.h>
+#include <stdint.h>
 #if !defined(_NES_CPU_)
 #define _NES_CPU_
 
-    /**
-     * Data bus has 8bit length
-     * Address bus has 16bits length
-     * Bus enable (BE)
-     * Interrupt Request (IRQ)
-     *
-    */
-
-    // Bus
-
-    //? Includes
+    // Includes
     #include "hdefault.h"
-    #include "bus.h"
+    #include "ram.h"
+    
+    // Constants
+    #define b_true = -1; // Just to set true at 1 bit fields
+    #define b_false = 0; // Just to set false at 1 bit fields
+    #define STACK_START 0x01FF
+    #define STACK_END 0x0100
+    
+    // Errors
+    #define ERR_CPU_NOT_LOADED -100
 
-    enum STATUS_REG{
-        C_CARRY       = (1 << 0),
-        Z_ZERO        = (1 << 1),
-        I_IRQ_DISABLE = (1 << 2),
-        D_DECIMAL     = (1 << 3),
-        B_BRK         = (1 << 4),
-        U_UNABLE      = (1 << 5),
-        V_OVERFLOW    = (1 << 6),
-        N_NEGATIVE    = (1 << 7),
-    };
+    // Address Modes
+    typedef enum ADDRESS_MODE{
+        accumulator,
+        immediate,
+        implied,
+        relative,
+        indirect,
+        indirect_x,
+        indirect_y,
+        absolute,
+        absolute_x,
+        absolute_y,
+        zero_page,
+        zero_page_x,
+        zero_page_y,
+        qtd_addr
+    } addr_mode_t;
+
+    typedef enum OPERATION{
+        LDA, LDX, LDY, STA, STX, STY, TAX, TAY, TXA,
+        TYA, TSX, TXS, PHA, PHP, PLA, PLP, AND, EOR,
+        ORA, BIT, ADC, SBC, CMP, CPX, CPY, INC, INX,
+        INY, DEC, DEX, DEY, ASL, LSR, ROL, ROR, JMP,
+        JSR, RTS, BCC, BCS, BEQ, BMI, BNE, BPL, BVC,
+        BVS, CLC, CLD, CLI, CLV, SEC, SED, SEI, BRK,
+        NOP, RTI, qtd_op
+    } operation_t;
 
     typedef union {
         struct {
@@ -41,19 +59,26 @@
         uint8_t status;
     } status_t;
 
-
-    typedef struct R6502{
-        struct bus_t *bus;
-        struct R6502 *self;
-
+    typedef struct{
+        operation_t op;
+        size_t size;
         uint8_t cycles;
-        uint8_t opcode;
+        addr_mode_t addr_mode;
+    } cpuinst_t;
 
-        //* Dados R/W no Bus
-        uint8_t data;
-        uint16_t addr_abs;
-        uint16_t addr_rel;
-
+    /**
+     * Structure to emulate a nes cpu
+     *
+     *  @param `uint8_t cycles`: Stores the remaining cycles to finish the instruction
+     *  @param `uint8_t ACC`: Accumulator
+     *  @param `uint8_t X`: Index Register X
+     *  @param `uint8_t Y`: Index Register Y
+     *  @param `uint8_t STK`: Stack pointer
+     *  @param `status_t STATUS`: Status Reg
+     *  @param `uint16_t PC`: Program Counter
+     *  @param `cpuinst_t instr[0xFF]`: Set of cpu valid instructions */
+    typedef struct R6502{
+        uint8_t cycles;
 
         //* Registers
         uint8_t ACC; // Accumulator
@@ -63,125 +88,132 @@
         status_t STATUS; // Status Reg
         uint16_t PC; // Program Counter
 
-    } R6502;
+        cpuinst_t instr[0xFF]; // Set of instructions
+    } R6502_t;
 
-    void cpu_connect_bus(R6502 *cpu, Bus *bus);
+    /**
+     * Start CPU structure to emulate NES R6502 cpu
+     * @param `R6502_t *cpu`: cpu to get default loaded 
+     *
+     * @Return if the operation was sucessifull */
+    int cpu_start(R6502_t *cpu);
+    void cpu_print(R6502_t proc);
+    int cpu_load_instr(R6502_t *cpu);
+    uint8_t fetch();
+    int exec(R6502_t *cpu, uint8_t op_code);
 
-    uint8_t cpu_get_val(R6502 *cpu, uint16_t addr);
-    uint8_t cpu_read(R6502 *cpu, uint16_t addr);
-    void cpu_write(R6502 *cpu, uint16_t addr, uint8_t data);
-
-    //? Signals
+    // Default param structure
     typedef struct {
-        R6502 *cpu;
-    }signal_param_t;
+        R6502_t *cpu;
+        uint8_t data; // It can be used only 8 bits
+        bool *additional_cycle;
+    } op_param_t;
 
-    void clock(const signal_param_t *param);
-    void RDY(const signal_param_t *param);
-    void IRQ(const signal_param_t *param);
-    void NMI(const signal_param_t *param);
-    void SO(const signal_param_t *param);
-    void RES(const signal_param_t *param);
-
-    //? Addressing modes
-    #define addrmod_param R6502 *cpu
-
-    uint8_t Accum( addrmod_param );
-    uint8_t IMM( addrmod_param );
-    uint8_t Abs( addrmod_param );
-    uint8_t ZP( addrmod_param );
-    uint8_t ZPX( addrmod_param );
-    uint8_t ZPY( addrmod_param );
-    uint8_t ABSX( addrmod_param );
-    uint8_t ABSY( addrmod_param );
-    uint8_t Implied( addrmod_param );
-    uint8_t Relative( addrmod_param );
-    uint8_t INDX( addrmod_param );
-    uint8_t INDY( addrmod_param );
-    uint8_t IND( addrmod_param );
-
-    //? Intructions
-    #define instr_params R6502 *cpu
-
-    uint8_t ADC(instr_params);
-    uint8_t AND(instr_params);
-    uint8_t ASL(instr_params);
-
-    uint8_t BCC(instr_params);
-    uint8_t BCS(instr_params);
-    uint8_t BEQ(instr_params);
-    uint8_t BIT(instr_params);
-    uint8_t BMI(instr_params);
-    uint8_t BNE(instr_params);
-    uint8_t BPL(instr_params);
-    uint8_t BRK(instr_params);
-    uint8_t BVC(instr_params);
-    uint8_t BVS(instr_params);
-
-    uint8_t CLC(instr_params);
-    uint8_t CLD(instr_params);
-    uint8_t CLI(instr_params);
-    uint8_t CLV(instr_params);
-    uint8_t CMP(instr_params);
-    uint8_t CPX(instr_params);
-    uint8_t CPY(instr_params);
-
-    uint8_t DEC(instr_params);
-    uint8_t DEX(instr_params);
-    uint8_t DEY(instr_params);
-
-    uint8_t EOR(instr_params);
-
-    uint8_t INC(instr_params);
-    uint8_t INX(instr_params);
-    uint8_t INY(instr_params);
-
-    uint8_t JMP(instr_params);
-    uint8_t JSR(instr_params);
-
-    uint8_t LDA(instr_params);
-    uint8_t LDX(instr_params);
-    uint8_t LDY(instr_params);
-    uint8_t LSR(instr_params);
-
-    uint8_t NOP(instr_params);
-
-    uint8_t ORA(instr_params);
-
-    uint8_t PHA(instr_params);
-    uint8_t PHP(instr_params);
-    uint8_t PLA(instr_params);
-    uint8_t PLP(instr_params);
-
-    uint8_t ROL(instr_params);
-    uint8_t ROR(instr_params);
-    uint8_t RTI(instr_params);
-    uint8_t RTS(instr_params);
-
-    uint8_t SBC(instr_params);
-    uint8_t SEC(instr_params);
-    uint8_t SED(instr_params);
-    uint8_t SEI(instr_params);
-    uint8_t STA(instr_params);
-    uint8_t STX(instr_params);
-    uint8_t STY(instr_params);
-
-    uint8_t TAX(instr_params);
-    uint8_t TAY(instr_params);
-    uint8_t TSX(instr_params);
-    uint8_t TXA(instr_params);
-    uint8_t TXS(instr_params);
-    uint8_t TYA(instr_params);
-
-    //? Instruction table
     typedef struct {
-        const char name[8];
-        uint8_t (*op)();
-        uint8_t (*addr_mode)();
-        uint8_t cycles;
-    } instruction_t;
-    #define NO_INSTR ((instruction_t){"???", NULL, NULL, 0})
+        size_t bytes;
+        R6502_t *cpu;
+        uint16_t *data;
+        bool *additional_cycle;
+    } addr_param_t;
 
-    extern instruction_t cpu_instr_tbl[256];
+    // ----------- operations -----------
+    // Load/Store
+    void op_LDA(op_param_t param);
+    void op_LDX(op_param_t param);
+    void op_LDY(op_param_t param);
+    void op_STA(op_param_t param);
+    void op_STX(op_param_t param);
+    void op_STY(op_param_t param);
+
+    // Registers Transfer
+    void op_TAX(op_param_t param);
+    void op_TAY(op_param_t param);
+    void op_TXA(op_param_t param);
+    void op_TYA(op_param_t param);
+
+    // Stack
+    void op_TSX(op_param_t param);
+    void op_TXS(op_param_t param);
+    void op_PHA(op_param_t param);
+    void op_PHP(op_param_t param);
+    void op_PLA(op_param_t param);
+    void op_PLP(op_param_t param);
+
+    // Logical
+    void op_AND(op_param_t param);
+    void op_EOR(op_param_t param);
+    void op_ORA(op_param_t param);
+    void op_BIT(op_param_t param);
+
+    // Arithmetic
+    void op_ADC(op_param_t param);
+    void op_SBC(op_param_t param);
+    void op_CMP(op_param_t param);
+    void op_CPX(op_param_t param);
+    void op_CPY(op_param_t param);
+
+    // Increment/Decrement
+    void op_INC(op_param_t param);
+    void op_INX(op_param_t param);
+    void op_INY(op_param_t param);
+    void op_DEC(op_param_t param);
+    void op_DEX(op_param_t param);
+    void op_DEY(op_param_t param);
+
+    // Shift
+    void op_ASL(op_param_t param);
+    void op_LSR(op_param_t param);
+    void op_ROL(op_param_t param);
+    void op_ROR(op_param_t param);
+
+    // Jump
+    void op_JMP(op_param_t param);
+    void op_JSR(op_param_t param);
+    void op_RTS(op_param_t param);
+
+    // Branch
+    void op_BCC(op_param_t param);
+    void op_BCS(op_param_t param);
+    void op_BEQ(op_param_t param);
+    void op_BMI(op_param_t param);
+    void op_BNE(op_param_t param);
+    void op_BPL(op_param_t param);
+    void op_BVC(op_param_t param);
+    void op_BVS(op_param_t param);
+
+    // Status Flag
+    void op_CLC(op_param_t param);
+    void op_CLD(op_param_t param);
+    void op_CLI(op_param_t param);
+    void op_CLV(op_param_t param);
+    void op_SEC(op_param_t param);
+    void op_SED(op_param_t param);
+    void op_SEI(op_param_t param);
+    
+    // System
+    void op_BRK(op_param_t param);
+    void op_NOP(op_param_t param);
+    void op_RTI(op_param_t param);
+
+    // ----------- address modes -----------
+    void addr_immediate(addr_param_t param);
+    void addr_accumulator(addr_param_t param);
+    void addr_implied(addr_param_t param);
+    void addr_relative(addr_param_t param);
+    void addr_indirect(addr_param_t param);
+    void addr_indirect_x(addr_param_t param);
+    void addr_indirect_y(addr_param_t param);
+    void addr_absolute(addr_param_t param);
+    void addr_absolute_x(addr_param_t param);
+    void addr_absolute_y(addr_param_t param);
+    void addr_zero_page(addr_param_t param);
+    void addr_zero_page_x(addr_param_t param);
+    void addr_zero_page_y(addr_param_t param);
+
+    int load_op_tbl();
+    int load_addr_tbl();
+
+    extern void (*op_tbl[qtd_op])(op_param_t);
+    extern void (*addr_tbl[qtd_addr])(addr_param_t);
 
 #endif // _NES_CPU_

@@ -1,19 +1,14 @@
-#include "hdefault.h"
-
 #include "cpu.h"
+#include <stdint.h>
+#include <stdio.h>
 
 int main() {
+    R6502_t cpu = {0};
+    cpu_start(&cpu);
+    cpu_print(cpu);
 
-    R6502 cpu = {0};
-
-    cpu.data = 8;
-    cpu.ACC = 15;
-
-    printf("Accumulador %d; Dados %d\n", cpu.ACC, cpu.data);
-
-    printf("Pode pedir ciclo? %s\n", AND(&cpu)?"Sim":"Nao");
-
-    printf("Accumulador %d; Dados %d\n", cpu.ACC, cpu.data);
+    exec(&cpu, 0x69);
+    cpu_print(cpu);
 
     return 0;
 }
