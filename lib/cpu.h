@@ -99,18 +99,18 @@
     int cpu_start(R6502_t *cpu);
     void cpu_print(R6502_t proc);
     int cpu_load_instr(R6502_t *cpu);
-    uint8_t fetch();
+    uint8_t fetch(R6502_t *cpu);
     int exec(R6502_t *cpu, uint8_t op_code);
 
     // Default param structure
     typedef struct {
         R6502_t *cpu;
-        uint8_t data; // It can be used only 8 bits
+        uint16_t data;
+        bool is_memory;
         bool *additional_cycle;
     } op_param_t;
 
     typedef struct {
-        size_t bytes;
         R6502_t *cpu;
         uint16_t *data;
         bool *additional_cycle;

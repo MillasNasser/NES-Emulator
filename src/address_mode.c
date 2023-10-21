@@ -5,15 +5,13 @@
 
 
 void addr_immediate(addr_param_t param) {
-    uint8_t data = fetch();
-    param.cpu->PC++;
+    uint8_t lo = fetch(param.cpu);
 
-    *param.data = data;
-    *param.additional_cycle = false;
+    *param.data = lo;
 }
 
 void addr_accumulator(addr_param_t param) {
-    *param.additional_cycle = false;
+    *param.data = param.cpu->ACC;
 }
 
 void addr_implied(addr_param_t param) {
@@ -21,67 +19,94 @@ void addr_implied(addr_param_t param) {
 }
 
 void addr_relative(addr_param_t param) {
-    not_imp();
+    uint16_t lo = fetch(param.cpu);
+    lo |= lo & 0x80 ? 0xFF00 : 0;
+    
+    *param.data = param.cpu->PC + lo;
+    if (!((*param.data ^ param.cpu->PC)>>8))
+        *param.additional_cycle++;
 }
 
 void addr_indirect(addr_param_t param) {
-    not_imp();
+    uint8_t data = fetch(param.cpu);
+
+    uint8_t lo = ram_read(data);
+    uint8_t hi = ram_read(data + 1);
+
+    *param.data = (hi << 8) | lo;
+    if ( hi != (*param.data >> 8) )
+        *param.additional_cycle++;
 }
 
 void addr_indirect_x(addr_param_t param) {
-    not_imp();
+    uint8_t data = fetch(param.cpu);
+
+    uint8_t lo = ram_read(data + param.cpu->X);
+    uint8_t hi = ram_read(data + param.cpu->X + 1);
+
+    *param.data = (hi << 8) | lo;
 }
 
 void addr_indirect_y(addr_param_t param) {
-    not_imp();
+    uint8_t data = fetch(param.cpu);
+
+    uint8_t lo = ram_read(data);
+    uint8_t hi = ram_read(data + 1);
+
+    *param.data = (hi << 8) | lo;
+    *param.data += param.cpu->Y;
+
+    if ( hi != (*param.data >> 8) )
+        *param.additional_cycle++;
 }
 
 void addr_absolute(addr_param_t param) {
-    uint16_t lo = fetch(); param.cpu->PC++;
-    uint16_t hi = fetch(); param.cpu->PC++;
+    uint16_t lo = fetch(param.cpu);
+    uint16_t hi = fetch(param.cpu);
 
     *param.data = (hi<<8) | lo;
+
     *param.additional_cycle = false;
 }
 
 void addr_absolute_x(addr_param_t param) {
-    bool req_cycle = false;
-    uint16_t lo = fetch(); param.cpu->PC++;
-    uint16_t hi = fetch(); param.cpu->PC++;
+    uint8_t lo = fetch(param.cpu);
+    uint8_t hi = fetch(param.cpu);
 
     *param.data = (hi<<8) | lo;
     *param.data += param.cpu->X;
 
-    if ( hi != (*param.data >> 8) ) req_cycle = true;
-    
-    *param.additional_cycle = req_cycle;
+    if ( hi != (*param.data >> 8) )
+        *param.additional_cycle++;
 }
 
 void addr_absolute_y(addr_param_t param) {
-    bool req_cycle = false;
-    uint16_t lo = fetch(); param.cpu->PC++;
-    uint16_t hi = fetch(); param.cpu->PC++;
+    uint8_t lo = fetch(param.cpu);
+    uint8_t hi = fetch(param.cpu);
 
     *param.data = (hi<<8) | lo;
     *param.data += param.cpu->Y;
 
-    if ( hi != (*param.data >> 8) ) req_cycle = true;
-    
-    *param.additional_cycle = req_cycle;
+    if ( hi != (*param.data >> 8) )
+        *param.additional_cycle++;
 }
 
 void addr_zero_page(addr_param_t param) {
-    not_imp();
+    uint8_t lo = fetch(param.cpu);
+
+    *param.data = lo;
 }
 
 void addr_zero_page_x(addr_param_t param) {
-    uint8_t data = fetch();
+    uint8_t lo = fetch(param.cpu);
 
-    param.data = ram_read(data + param.cpu->X) & 0x00ff;
+    *param.data = (lo + param.cpu->X) & 0x00FF;
 }
 
 void addr_zero_page_y(addr_param_t param) {
-    not_imp();
+    uint8_t lo = fetch(param.cpu);
+
+    *param.data = (lo + param.cpu->Y) & 0x00FF;
 }
 
 void (*addr_tbl[qtd_addr])(addr_param_t) = {0};

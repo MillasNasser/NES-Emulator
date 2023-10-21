@@ -6,12 +6,11 @@
     #define RAM_SIZE 0xFFFF
     
     // Errors
-    #define ERR_RAM_NOT_LOADED -200
+    // #define ERR_RAM_NOT_LOADED -200
     
-    typedef struct {
-        uint8_t address[RAM_SIZE];
-    } nes_ram_t;
+    extern uint8_t ram[RAM_SIZE];
+    int ram_start();
 
     uint8_t ram_read(uint16_t addr);
-    uint8_t ram_write(uint16_t addr);
+    uint8_t ram_write(uint16_t addr, uint8_t data);
 #endif // __NES_RAM__

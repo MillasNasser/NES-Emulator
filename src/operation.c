@@ -1,22 +1,24 @@
 #include "cpu.h"
 #include "hdefault.h"
+#include "ram.h"
 #include <stdint.h>
 
 void op_ADC(op_param_t param){
-    uint8_t result = 0;
-    uint8_t data = param.data;
+    uint16_t result = 0;
     R6502_t *cpu = param.cpu;
+    uint16_t data = param.data;
+    if(param.is_memory) data = ram_read(data);
 
     result = cpu->ACC
            + data
            + bit(cpu->STATUS.C_CARRY);
 
     // Updating CPU
-    cpu->ACC = result;
-    cpu->STATUS.Z_ZERO = result == 0;
+    cpu->STATUS.C_CARRY = result > 0xff;
+    cpu->STATUS.Z_ZERO = (result&0xff) == 0;
     cpu->STATUS.N_NEGATIVE = (result&0x80) != 0;
-    cpu->STATUS.V_OVERFLOW = ((result^data)&0x80) != 0;
-    cpu->STATUS.C_CARRY = cpu->STATUS.V_OVERFLOW;
+    cpu->STATUS.V_OVERFLOW = ((result^cpu->ACC)&0x80) != 0;
+    cpu->ACC = result;
 
     *param.additional_cycle &= true;
 }

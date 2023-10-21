@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "hdefault.h"
+#include "ram.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -15,10 +16,11 @@ int cpu_start(R6502_t *cpu){
     return 0;
 }
 
-uint8_t fetch() {
-    // Move to another place?
-    // Function that retrieve next byte from program
-    not_imp(0x69);
+uint8_t fetch(R6502_t *cpu) {
+    uint8_t data = ram_read(cpu->PC);
+    cpu->PC++;
+
+    return data;
 }
 
 void cpu_print(R6502_t proc){
@@ -51,26 +53,30 @@ int exec(R6502_t *cpu, uint8_t op_code) {
     void (*func_addr)(addr_param_t) = addr_tbl[ inst.addr_mode ];
     void (*func_op)(op_param_t) = op_tbl[ inst.op ];
 
-    uint8_t data = 0;
-    uint8_t cycles = inst.cycles;
-    bool req_cycle = false;
+    uint16_t data = 0;
+    uint8_t req_cycle = 0;
+    bool is_memory = true;
 
-    // Retrieving data (memory or immediate)
+    // Retrieving data or address
+    if (func_addr == addr_implied) is_memory = false;
+    if (func_addr == addr_immediate) is_memory = false;
+    if (func_addr == addr_accumulator) is_memory = false;
+    
     func_addr((addr_param_t){
         .cpu = cpu,
         .data = &data,
-        .bytes = inst.size,
         .additional_cycle = &req_cycle,
     });
 
     func_op((op_param_t){
         .cpu = cpu,
         .data = data,
+        .is_memory = is_memory,
         .additional_cycle = &req_cycle
     });
 
-    if(req_cycle) cycles++;
-    cpu->cycles = cycles;
+    // Updating CPU needed cycles
+    cpu->cycles = inst.cycles + req_cycle;
 
     return 0;
 }
