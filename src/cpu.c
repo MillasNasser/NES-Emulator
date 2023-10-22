@@ -28,9 +28,9 @@ void cpu_print(R6502_t proc){
     printf("[TIME] cycles: %d\n", proc.cycles);
     printf("[PROG] PC: %d\n", proc.PC);
     printf("[MEMO] stack: 0x%02x\n", proc.STK);
-    printf("[REG] X  : %d \n", proc.X);
-    printf("[REG] Y  : %d \n", proc.Y);
-    printf("[REG] ACC: %d \n", proc.ACC);
+    printf("[REG] X  : 0x%02x | %d \n", proc.X, proc.X);
+    printf("[REG] Y  : 0x%02x | %d \n", proc.Y, proc.Y);
+    printf("[REG] ACC: 0x%02x | %d \n", proc.ACC, proc.ACC);
     printf("[STATUS] NVUBDIZC | status\n");
     printf("[STATUS] %u%u%u%u%u%u%u%u | %u\n",
         proc.STATUS.N_NEGATIVE & 0x01,

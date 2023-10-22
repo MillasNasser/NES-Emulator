@@ -24,7 +24,7 @@ void addr_relative(addr_param_t param) {
     
     *param.data = param.cpu->PC + lo;
     if (!((*param.data ^ param.cpu->PC)>>8))
-        *param.additional_cycle++;
+        *param.additional_cycle += 1;
 }
 
 void addr_indirect(addr_param_t param) {
@@ -35,7 +35,7 @@ void addr_indirect(addr_param_t param) {
 
     *param.data = (hi << 8) | lo;
     if ( hi != (*param.data >> 8) )
-        *param.additional_cycle++;
+        *param.additional_cycle += 1;
 }
 
 void addr_indirect_x(addr_param_t param) {
@@ -57,7 +57,7 @@ void addr_indirect_y(addr_param_t param) {
     *param.data += param.cpu->Y;
 
     if ( hi != (*param.data >> 8) )
-        *param.additional_cycle++;
+        *param.additional_cycle += 1;
 }
 
 void addr_absolute(addr_param_t param) {
@@ -77,7 +77,7 @@ void addr_absolute_x(addr_param_t param) {
     *param.data += param.cpu->X;
 
     if ( hi != (*param.data >> 8) )
-        *param.additional_cycle++;
+        *param.additional_cycle += 1;
 }
 
 void addr_absolute_y(addr_param_t param) {
@@ -88,7 +88,7 @@ void addr_absolute_y(addr_param_t param) {
     *param.data += param.cpu->Y;
 
     if ( hi != (*param.data >> 8) )
-        *param.additional_cycle++;
+        *param.additional_cycle += 1;
 }
 
 void addr_zero_page(addr_param_t param) {

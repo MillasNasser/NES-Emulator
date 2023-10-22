@@ -91,11 +91,6 @@
         cpuinst_t instr[0xFF]; // Set of instructions
     } R6502_t;
 
-    /**
-     * Start CPU structure to emulate NES R6502 cpu
-     * @param `R6502_t *cpu`: cpu to get default loaded 
-     *
-     * @Return if the operation was sucessifull */
     int cpu_start(R6502_t *cpu);
     void cpu_print(R6502_t proc);
     int cpu_load_instr(R6502_t *cpu);
@@ -107,13 +102,13 @@
         R6502_t *cpu;
         uint16_t data;
         bool is_memory;
-        bool *additional_cycle;
+        uint8_t *additional_cycle;
     } op_param_t;
 
     typedef struct {
         R6502_t *cpu;
         uint16_t *data;
-        bool *additional_cycle;
+        uint8_t *additional_cycle;
     } addr_param_t;
 
     // ----------- operations -----------

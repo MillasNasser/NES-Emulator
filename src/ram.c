@@ -4,7 +4,7 @@
 
 uint8_t ram[RAM_SIZE];
 int ram_start(){
-    memset(&ram, RAM_SIZE, sizeof(uint8_t));
+    memset(&ram, 0, sizeof(uint8_t)*RAM_SIZE);
 
     return true;
 }
